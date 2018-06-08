@@ -1,0 +1,218 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Helios by HTML5 UP</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<script src=nebPay.js></script>
+		<script src=nebulas.js></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/jquery.scrolly.min.js"></script>
+		<script src="assets/js/jquery.onvisible.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/util.js"></script>
+		<script src="assets/js/main.js"></script>
+	</head>
+	<body class="homepage">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+				<div id="header">
+					<!-- Inner -->
+						<div class="inner">
+							<header>
+								<h1><a href="index.html" id="logo">BirthD</a></h1>
+								<br>
+								<hr />
+								<br>
+								Here you can discover the year of birth by entering the current <br> age of the person or thing you want.
+							</header>
+							<footer>
+								<a href="#banner" class="button circled scrolly">Start</a>
+							</footer>
+						</div>
+				</div>
+
+			<!-- Banner -->
+				<section id="banner">
+					<!-- Inputs -->
+					<header id=input>
+						<script>
+							if(window.location.href.indexOf("txhash=") != -1){
+								document.getElementById("input").style.display = "none";
+								document.getElementById("b_request").style.display = "block";
+							}
+						</script>
+						<h2><strong>Age:</strong></h2>
+						<input type=number id=new_request_age></input>
+						<footer>
+							<a href="#banner" class="button circled scrolly" onclick="javascript:onClickRequestBirthD()">Request Birthdate</a>
+						</footer>
+					</header>
+					<!-- Pending -->
+					<header id=b_request_pending style="display:none;">
+						<script>
+						if(window.location.href.indexOf("txhash=") == -1){
+							document.getElementById("b_request").style.display = "none";
+						}
+						</script>
+						<script>
+						if(window.location.href.indexOf("txhash=") != -1){
+							document.getElementById("b_request_pending").style.display = "block";
+						}
+						</script>
+						<h2><strong>Processing...</strong></h2>
+            Waiting for the transaction to be confirmed by Nebulas.
+            <br><br>
+            <footer>
+  						<a href="#banner" class="button circled scrolly" onclick="javascript:onClickRefresh()">Refresh</a>
+  					</footer>
+					</header>
+          <!-- Completed -->
+          <header id=b_request>
+						<h2><strong>Birthdate:</strong></h2>
+              <h2><span id=b_request_birth></span></h2>
+            <br>
+              Birthdate selected at <span id=b_request_date></span>
+              <br>
+              <a id="viewTx" href="#">View Transaction</a> as Proof on the Block Explorer.
+            <footer>
+  						<a href="index.html" class="button circled scrolly" onclick="javascript:onClickRefresh()">Go Home</a>
+  					</footer>
+					</header>
+				</section>
+
+				<!-- Script of Index -->
+				<script src=BirthD.js></script>
+				<script>
+		        "use strict";
+
+		        var NebPay = require("nebpay");
+		        var nebPay = new NebPay();
+
+		        function onClickRequestBirthD() {
+		            var age = parseInt($("#new_request_age").val());
+
+		            nebPay.call(contract_address, 0, "requestBirthD", JSON.stringify([age]), {
+		                listener: onRequestBirthD
+		            });
+		        }
+
+		        function onRequestBirthD(resp) {
+		            if(typeof(resp)==='string' && resp.startsWith("Error")) {
+		                throw new Error(resp);
+		            }
+								if (history.pushState) {
+									var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?txhash=' + resp.txhash;
+									window.history.pushState({path:newurl},'',newurl);
+									$("#input").hide();
+									$("#b_request_pending").show();
+								}
+		        }
+
+		        //to check if the extension is installed
+		        //if the extension is installed, var "webExtensionWallet" will be injected in to web page
+		        if(typeof(webExtensionWallet) === "undefined"){
+		            alert ("Extension wallet is not installed, redirecting you to more information.");
+		            var href = window.location.href;
+		            var dir = href.substring(0, href.lastIndexOf('/')) + "/";
+		            window.location =  dir + 'about.html';
+		        }
+		    </script>
+
+				<!-- Script of Results -->
+		    <script src=BirthD.js></script>
+		    <script>
+		        "use strict";
+
+		        $("#viewTx").attr('href', "https://explorer.nebulas.io/#/tx/" + window.location.search.substr(8));
+		        $("#b_request").hide();
+
+		        // Gas hard coded for simplicity, ideally your app would allow for changing the gas price, etc.
+		        var is_mainnet = true;
+		        var nebulas_chain_id, nebulas_domain;
+		        var gas_price = 1000000;
+		        var gas_limit = 200000;
+
+		        if(is_mainnet) {
+		            nebulas_chain_id = 1;
+		            nebulas_domain = "https://mainnet.nebulas.io";
+		        } else {
+		            nebulas_chain_id = 1001;
+		            nebulas_domain = "https://testnet.nebulas.io";
+		        }
+
+		        // The nebulas API, used for signing transactions, etc
+		        var nebulas = require("nebulas");
+		        var neb = new nebulas.Neb();
+		        neb.setRequest(new nebulas.HttpRequest(nebulas_domain));
+
+		        // Called by the Refresh button and auto-called every few seconds
+		        function onClickRefresh() {
+		            neb.api.call({
+		                from: contract_address, // Using the contract here so this can be called without loggin on.
+		                to: contract_address,
+		                value: 0,
+		                nonce: 0, // Nonce is irrelavant when read-only (there is no transaction charge)
+		                gasPrice: gas_price,
+		                gasLimit: gas_limit,
+		                contract: {function: "getBirthD", args: JSON.stringify([window.location.search.substr(8)])} //?txhash=
+		            }).then(function (resp) {
+		                var response = JSON.parse(resp.result);
+		                if(response) {
+		                    $("#b_request").show();
+		                    $("#b_request_pending").hide();
+
+		                    $("#b_request_birth").text(response.birth);
+		                    $("#b_request_date").text(new Date(response.date));
+		                    $("#b_request_age").text(response.age);
+		                } else {
+		                    setTimeout(onClickRefresh, 3000); // Auto-refresh every few seconds
+		                }
+		            });
+		        }
+
+		        onClickRefresh();
+		    </script>
+
+
+			<!-- Footer -->
+				<div id="footer">
+					<div class="container">
+						<div class="row">
+
+						</div>
+						<hr />
+						<div class="row">
+							<div class="12u">
+
+								<!-- Contact -->
+									<section class="contact">
+										<header>
+											<h3>Do you need help? contact me</h3>
+										</header>
+										<a href="mailto:saradiamanzano@gmail.com"><em>saradiamanzano@gmail.com</em></a>
+
+									</section>
+
+								<!-- Copyright -->
+									<div class="copyright">
+										<ul class="menu">
+											<li>&copy; BirthD. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+										</ul>
+									</div>
+
+							</div>
+
+						</div>
+					</div>
+				</div>
+
+		</div>
+	</body>
+</html>
